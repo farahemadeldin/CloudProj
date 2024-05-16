@@ -17,6 +17,7 @@ AWS.config.update({
 
 // Initialize DynamoDB
 const dynamodb = new AWS.DynamoDB({ apiVersion: '2012-08-10' }); // Specify the API version
+console.log('AWS configuration:', AWS.config);
 
 // Routes
 app.use('/recipes', recipeRoutes); // Use recipeRoutes for /recipes endpoint
