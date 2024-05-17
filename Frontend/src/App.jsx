@@ -5,7 +5,7 @@ function App() {
   return (
       <Routes>
         {/* Home page */}
-        <Route path="/recipe" element={<RecipeForm />} />
+        <Route path="/" element={<RecipeForm />} />
       </Routes>
   );
 }

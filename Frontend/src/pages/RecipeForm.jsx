@@ -1,36 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Modal, Button } from 'react-bootstrap';
+import { Form, Modal, Button, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
-let backend_url = "http://localhost:3000/recipes";
-  const RecipeForm = () => {
+
+const backend_url = "http://localhost:3000/recipes";
+
+const RecipeForm = ({ recipe, onUpdate }) => {
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [ingredients, setIngredients] = useState('');
 
+  useEffect(() => {
+    if (recipe) {
+      setTitle(recipe.title);
+      setCategory(recipe.category);
+      setIngredients(recipe.ingredients);
+    }
+  }, [recipe]);
+
   const handleSubmit = async () => {
     try {
-      console.log(category); 
-      console.log(title);
-      console.log(ingredients);// Ensure that category is defined
-      const response = await axios.post(`${backend_url}/add`, { title, category, ingredients });
+      const requestData = { title, category, ingredients };
+      if (recipe) {
+        // Edit existing recipe
+        const response = await axios.put(`${backend_url}/${recipe.id}`, requestData);
+        onUpdate(response.data); // Update the state in the parent component
+      } else {
+        // Create new recipe
+        const response = await axios.post(`${backend_url}`, requestData);
+        onUpdate(response.data); // Update the state in the parent component
+      }
       setShowModal(false);
-      // Optionally, redirect to the recipe list page after successful submission
-      // navigate('/recipes');
     } catch (error) {
-      console.error('Error creating recipe:', error);
+      console.error('Error:', error);
+      // Add error handling here
+      alert('Failed to submit recipe. Please try again later.');
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      if (recipe) {
+        // Delete existing recipe
+        await axios.delete(`${backend_url}/${recipe.id}`);
+        onUpdate(null); // Notify parent component about deletion
+        setShowModal(false);
+      }
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      // Add error handling here
+      alert('Failed to delete recipe. Please try again later.');
     }
   };
 
   return (
     <>
-      <Button onClick={() => setShowModal(true)}>Create Recipe</Button>
+      <Row>
+        <Col>
+          <Button variant="info" onClick={() => setShowModal(true)}>Create Recipe</Button>
+        </Col>
+        <Col>
+          <Button variant="info" onClick={() => setShowModal(true)}>Edit Recipe</Button>
+        </Col>
+        {recipe && (
+          <Col>
+            <Button variant="danger" onClick={handleDelete}>Delete Recipe</Button>
+          </Col>
+        )}
+      </Row>
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Create Recipe</Modal.Title>
+          <Modal.Title>{recipe ? 'Edit Recipe' : 'Create Recipe' }</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleSubmit}>
+          <Form>
             <Form.Group controlId="formTitle">
               <Form.Label>Title</Form.Label>
               <Form.Control type="text" placeholder="Enter title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -50,7 +93,7 @@ let backend_url = "http://localhost:3000/recipes";
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSubmit}>
-            Create
+            {recipe ? 'Update' : 'Create'}
           </Button>
         </Modal.Footer>
       </Modal>

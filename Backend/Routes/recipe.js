@@ -1,12 +1,12 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const RecipeController = require("../Controller/RecipeService"); // Fix casing issue
+const recipeController = require('../Controller/RecipeService');
 
+// Define routes and ensure each route has a callback function from the controller
+router.get('/', recipeController.getAllRecipes);
+router.get('/:id', recipeController.getRecipeById);
+router.post('/', recipeController.createRecipe);
+router.put('/:id', recipeController.updateRecipeById);
+router.delete('/:id', recipeController.deleteRecipeById);
 
-router.post("/add",  RecipeController.createRecipe);
-router.get('/', RecipeController.getAllRecipes);
-router.get("/:id", RecipeController.getRecipeById);
-router.put("/:id", RecipeController.updateRecipeById);
-router.delete("/:id", RecipeController.deleteRecipeById);
-
-module.exports = router; // Export the router
+module.exports = router;

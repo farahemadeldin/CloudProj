@@ -1,12 +1,13 @@
 const express = require('express');
 const AWS = require('aws-sdk');
-const recipeRoutes = require('../Backend/Routes/recipe');
 const cors = require('cors');
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow requests from this origin
+}));
 
 // Set the AWS credentials and region
 AWS.config.update({
@@ -16,35 +17,15 @@ AWS.config.update({
 });
 
 // Initialize DynamoDB
-const dynamodb = new AWS.DynamoDB({ apiVersion: '2012-08-10' }); // Specify the API version
+const dynamodb = new AWS.DynamoDB.DocumentClient();
 console.log('AWS configuration:', AWS.config);
 
-// Routes
-app.use('/recipes', recipeRoutes); // Use recipeRoutes for /recipes endpoint
+// Import and use recipe routes
+const recipeRoutes = require('./Routes/recipe');
+app.use('/recipes', recipeRoutes);
 
-// Define route to interact with DynamoDB
-app.post('/add', (req, res) => {
-  const params = {
-    TableName: 'Recipe',
-    Item: {
-      title: { S: req.body.title }, // Ensure proper data format for DynamoDB
-      category: { S: req.body.category },
-      ingredients: { S: req.body.ingredients }
-    }
-  };
-
-  dynamodb.putItem(params, (err, data) => {
-    if (err) {
-      console.error('Error putting item:', err);
-      res.status(500).json({ message: 'Failed to create recipe', error: err });
-    } else {
-      console.log('Item put successfully:', data);
-      res.status(201).json({ message: 'Recipe created successfully', data });
-    }
-  });
-});
-
-// Start server
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
